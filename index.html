@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mantra Purusha</title>
+    <title>Sanskrit Syllable Soundboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -40,9 +40,20 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            background: url('gurupaduka.jpg') no-repeat center center fixed; /* Replace with your image file name */
-            background-size: cover;
+            background-image: url('gurupaduka.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain; /* Changed to contain to show full image */
+            background-attachment: fixed;
             position: relative;
+            min-height: 100vh; /* Ensure body covers full viewport height */
+        }
+        /* Responsive background for mobile */
+        @media (max-width: 640px) {
+            body {
+                background-size: contain; /* Ensure full image is visible on mobile */
+                background-position: top center; /* Align to top for better visibility */
+            }
         }
         body::before {
             content: '';
@@ -127,7 +138,6 @@
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-gray-800 tracking-tight mb-8">
             Mantra Purusha
         </h1>
-        <br>
         <div id="controls" class="flex justify-center items-center space-x-4 mb-8 flex-row">
             <div class="flex items-center space-x-4">
                 <button id="play-all-btn" class="bg-green-500 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-green-600 transition-colors duration-200">
@@ -151,9 +161,7 @@
                 </select>
             </div>
         </div>
-        <br>
         <div id="vowels-section" class="mb-8"></div>
-        <br>
         <div id="consonants-section"></div>
     </div>
 
