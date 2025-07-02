@@ -257,7 +257,7 @@
 
                 const audio = audioCache[syllable];
                 if (!audio) {
-                    showMessageBox(`Error playing ${syllable}: Audio file not found`);
+                    //showMessageBox(`Error playing ${syllable}: Audio file not found`);
                     if (isPlayAll) {
                         button.classList.add('completed');
                         currentSyllableIndex++;
@@ -270,7 +270,7 @@
                 button.classList.add('playing');
                 audio.currentTime = 0;
                 audio.play().then(() => {
-                    showMessageBox(`Playing ${syllable}${isPlayAll ? '' : ` (Rep ${rep + 1}/${repetitions})`}`);
+                    //showMessageBox(`Playing ${syllable}${isPlayAll ? '' : ` (Rep ${rep + 1}/${repetitions})`}`);
                     setTimeout(() => button.classList.remove('playing'), 300);
                     const duration = audio.duration * 1000 || 1000; // Fallback to 1s
                     rep++;
