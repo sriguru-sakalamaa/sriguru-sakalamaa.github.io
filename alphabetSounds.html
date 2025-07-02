@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanskrit Syllable Soundboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    width: {
+                        'button-xs': '3rem',   // 48px for mobile
+                        'button-sm': '3rem',   // 48px for sm
+                        'button-md': '4rem',   // 64px for md
+                        'button-lg': '4.5rem', // 72px for lg and xl
+                    },
+                    height: {
+                        'button-xs': '3rem',
+                        'button-sm': '3rem',
+                        'button-md': '4rem',
+                        'button-lg': '4.5rem',
+                    },
+                    fontSize: {
+                        'button-xs': '1rem',     // 16px for 48px buttons
+                        'button-sm': '1rem',     // 16px for 48px buttons
+                        'button-md': '1.25rem',  // 20px for 64px buttons
+                        'button-lg': '1.5rem',   // 24px for 72px buttons
+                    },
+                    colors: {
+                        'overlay': 'rgba(0, 0, 0, 0.4)', // Semi-transparent overlay for readability
+                    },
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: url('gurupaduka.jpg') no-repeat center center fixed; /* Replace with your image file name */
+            background-size: cover;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: theme('colors.overlay'); /* Semi-transparent overlay */
+            z-index: 0;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Sanskrit text styling */
+        .sanskrit-text {
+            font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        /* Pulse animation for button click */
+        .playing {
+            animation: pulse 0.3s ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        /* Disabled button styling */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        button:disabled:not(.completed) {
+            background-color: #d1d5db; /* gray-300 for incomplete buttons */
+        }
+        button:disabled:not(.completed):hover {
+            background-color: #d1d5db; /* Prevent hover effect */
+            transform: none;
+        }
+        button.completed {
+            background-color: #fcd34d; /* amber-300 for completed buttons */
+        }
+        /* Dropdown styling */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em;
+        }
+        /* Responsive layout for controls */
+        .controls-playing {
+            flex-direction: column;
+        }
+        @media (min-width: 640px) {
+            .controls-playing {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="content-wrapper max-w-4xl w-full bg-white/90 p-6 rounded-3xl shadow-2xl border border-gray-200">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-gray-800 tracking-tight mb-8">
+            Mantra Purusha
+        </h1>
+        <div id="controls" class="flex justify-center items-center space-x-4 mb-8 flex-row">
+            <div class="flex items-center space-x-4">
+                <button id="play-all-btn" class="bg-green-500 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-green-600 transition-colors duration-200">
+                    Play All
+                </button>
+                <button id="pause-btn" class="hidden bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-600 transition-colors duration-200" aria-label="Pause playback">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                    </svg>
+                </button>
+                <button id="stop-btn" class="hidden bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-600 transition-colors duration-200" aria-label="Stop playback">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6h12v12H6z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <label for="repetition-select" class="text-lg font-semibold text-gray-700">Repetition:</label>
+                <select id="repetition-select" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-300">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+        </div>
+        <div id="vowels-section" class="mb-8"></div>
+        <div id="consonants-section"></div>
+    </div>
+
+    <script>
+        // Sanskrit syllables structured into conceptual rows
+        const vowelRows = [
+            ['अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ'],
+            ['ऌ', 'ॡ', 'ए', 'ऐ', 'ओ', 'औ', 'अं', 'अः']
+        ];
+
+        const consonantRows = [
+            ['क', 'ख', 'ग', 'घ', 'ङ'], // Row 1: 5
+            ['च', 'छ', 'ज', 'झ', 'ञ'], // Row 2: 5
+            ['ट', 'ठ', 'ड', 'ढ', 'ण'], // Row 3: 5
+            ['त', 'थ', 'द', 'ध', 'न'], // Row 4: 5
+            ['प', 'फ', 'ब', 'भ', 'म'], // Row 5: 5
+            ['य', 'र', 'ल', 'व'],       // Row 6: 4
+            ['श', 'ष', 'स', 'ह', 'ळ', 'क्ष'] // Row 7: 6
+        ];
+
+        // Mapping of Sanskrit syllables to audio file names
+        const syllableToAudioMap = {
+            // Vowels
+            'अ': 'am', 'आ': 'aam', 'इ': 'im', 'ई': 'iim', 'उ': 'um', 'ऊ': 'uum', 'ऋ': 'rum', 'ॠ': 'ruum',
+            'ऌ': 'lrum', 'ॡ': 'lruum', 'ए': 'aim', 'ऐ': 'aiim', 'ओ': 'om', 'औ': 'aum', 'अं': 'am2', 'अः': 'aha',
+            // Consonants
+            'क': 'kam', 'ख': 'kham', 'ग': 'gam', 'घ': 'gham', 'ङ': 'ngyem',
+            'च': 'cham', 'छ': 'chham', 'ज': 'jam', 'झ': 'jham', 'ञ': 'inyem',
+            'ट': 'tam', 'ठ': 'ttam', 'ड': 'dam', 'ढ': 'dham', 'ण': 'anam',
+            'त': 'tham', 'थ': 'ttham', 'द': 'dham', 'ध': 'ddham', 'न': 'nam',
+            'प': 'pam', 'फ': 'ppam', 'ब': 'bam', 'भ': 'bhham', 'म': 'mum',
+            'य': 'yam', 'र': 'ram', 'ल': 'lam', 'व': 'vam',
+            'श': 'sham1', 'ष': 'sham2', 'स': 'sam', 'ह': 'ham', 'ळ': 'alam', 'क्ष': 'ksham'
+        };
+
+        // Preload audio files to reduce playback latency
+        const audioCache = {};
+        Object.entries(syllableToAudioMap).forEach(([syllable, fileName]) => {
+            audioCache[syllable] = new Audio(`./sounds/${fileName}.mp3`);
+        });
+
+        // Flatten syllables for sequential playback (vowels then consonants)
+        const allSyllables = [
+            ...vowelRows.flat(),
+            ...consonantRows.flat()
+        ];
+
+        // Track playback state
+        let isPlayingAll = false;
+        let isPaused = false;
+        let currentSyllableIndex = 0;
+        let currentRepetition = 0;
+        let playbackTimeouts = [];
+
+        // DOM elements
+        const playAllBtn = document.getElementById('play-all-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const repetitionSelect = document.getElementById('repetition-select');
+        const controlsContainer = document.getElementById('controls');
+
+        // Populate dropdown with options 1 to 108
+        for (let i = 1; i <= 108; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            if (i === 1) option.selected = true;
+            repetitionSelect.appendChild(option);
+        }
+
+        // Function to toggle syllable button states
+        function toggleSyllableButtons(disabled) {
+            const buttons = document.querySelectorAll('button[data-syllable]');
+            buttons.forEach(button => {
+                button.disabled = disabled;
+            });
+        }
+
+        // Function to restore completed button states
+        function restoreCompletedButtons() {
+            for (let i = 0; i < currentSyllableIndex; i++) {
+                const syllable = allSyllables[i];
+                const button = document.querySelector(`button[data-syllable="${syllable}"]`);
+                if (button) button.classList.add('completed');
+            }
+        }
+
+        // Play a single syllable multiple times
+        function playSyllableMultipleTimes(syllable, button, repetitions, isPlayAll = false) {
+            let rep = isPlayAll ? currentRepetition : 0;
+            function playNextRepetition() {
+                if (rep >= repetitions || (isPlayAll && (!isPlayingAll || isPaused))) {
+                    if (isPlayAll) {
+                        button.classList.add('completed'); // Mark as completed only after all repetitions
+                        currentSyllableIndex++;
+                        currentRepetition = 0;
+                        playNextSyllable();
+                    }
+                    return;
+                }
+
+                const audio = audioCache[syllable];
+                if (!audio) {
+                    showMessageBox(`Error playing ${syllable}: Audio file not found`);
+                    if (isPlayAll) {
+                        button.classList.add('completed');
+                        currentSyllableIndex++;
+                        currentRepetition = 0;
+                        playbackTimeouts.push(setTimeout(playNextSyllable, 500));
+                    }
+                    return;
+                }
+
+                button.classList.add('playing');
+                audio.currentTime = 0;
+                audio.play().then(() => {
+                    showMessageBox(`Playing ${syllable}${isPlayAll ? '' : ` (Rep ${rep + 1}/${repetitions})`}`);
+                    setTimeout(() => button.classList.remove('playing'), 300);
+                    const duration = audio.duration * 1000 || 1000; // Fallback to 1s
+                    rep++;
+                    if (isPlayAll) currentRepetition = rep;
+                    playbackTimeouts.push(setTimeout(playNextRepetition, duration + 500)); // Audio duration + 0.5s gap
+                }).catch(err => {
+                    console.error(`Audio playback failed for ${syllable}:`, err);
+                    showMessageBox(`Error playing ${syllable}: Audio file not found`);
+                    if (isPlayAll) {
+                        button.classList.add('completed');
+                        currentSyllableIndex++;
+                        currentRepetition = 0;
+                        playbackTimeouts.push(setTimeout(playNextSyllable, 500));
+                    }
+                });
+            }
+            playNextRepetition();
+        }
+
+        // Play all syllables sequentially
+        function playAllSyllables() {
+            if (isPlayingAll || isPaused) return;
+            isPlayingAll = true;
+            currentSyllableIndex = 0;
+            currentRepetition = 0;
+            playAllBtn.classList.add('hidden');
+            pauseBtn.classList.remove('hidden');
+            stopBtn.classList.remove('hidden');
+            controlsContainer.classList.add('controls-playing'); // Switch to column layout on mobile
+            toggleSyllableButtons(true); // Disable syllable buttons
+            const buttons = document.querySelectorAll('button[data-syllable]');
+            buttons.forEach(button => button.classList.remove('completed')); // Reset all colors
+            playNextSyllable();
+        }
+
+        // Play next syllable in sequence
+        function playNextSyllable() {
+            if (currentSyllableIndex >= allSyllables.length) {
+                stopPlayback();
+                return;
+            }
+
+            const syllable = allSyllables[currentSyllableIndex];
+            const button = document.querySelector(`button[data-syllable="${syllable}"]`);
+            playSyllableMultipleTimes(syllable, button, parseInt(repetitionSelect.value), true);
+        }
+
+        // Pause playback
+        function pausePlayback() {
+            if (!isPlayingAll) return;
+            if (isPaused) {
+                // Resume
+                isPaused = false;
+                pauseBtn.innerHTML = `
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                    </svg>
+                `;
+                pauseBtn.setAttribute('aria-label', 'Pause playback');
+                toggleSyllableButtons(true); // Keep buttons disabled on resume
+                restoreCompletedButtons(); // Restore completed button colors
+                playNextSyllable();
+            } else {
+                // Pause
+                isPaused = true;
+                pauseBtn.innerHTML = `
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 5v14l10-7z"></path>
+                    </svg>
+                `;
+                pauseBtn.setAttribute('aria-label', 'Resume playback');
+                const currentAudio = audioCache[allSyllables[currentSyllableIndex]];
+                if (currentAudio) currentAudio.pause();
+                playbackTimeouts.forEach(clearTimeout);
+                playbackTimeouts = [];
+                toggleSyllableButtons(false); // Enable buttons when paused
+            }
+        }
+
+        // Stop playback
+        function stopPlayback() {
+            isPlayingAll = false;
+            isPaused = false;
+            currentSyllableIndex = 0;
+            currentRepetition = 0;
+            playbackTimeouts.forEach(clearTimeout);
+            playbackTimeouts = [];
+            const currentAudio = audioCache[allSyllables[currentSyllableIndex]];
+            if (currentAudio) currentAudio.pause();
+            playAllBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            stopBtn.classList.add('hidden');
+            controlsContainer.classList.remove('controls-playing'); // Restore row layout
+            pauseBtn.innerHTML = `
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                </svg>
+            `;
+            pauseBtn.setAttribute('aria-label', 'Pause playback');
+            toggleSyllableButtons(false); // Enable syllable buttons
+            const buttons = document.querySelectorAll('button[data-syllable]');
+            buttons.forEach(button => button.classList.remove('completed')); // Reset all colors
+        }
+
+        // Function to create and append buttons for a single row within a grid
+        function createButtonsForOneRow(syllableRowArray, parentElement, isVowelRow) {
+            const rowContainer = document.createElement('div');
+            let gridClasses = 'grid gap-2 sm:gap-4 justify-items-center mb-6';
+            gridClasses += isVowelRow 
+                ? ' grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-8'
+                : ' grid-cols-5 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6';
+
+            rowContainer.className = gridClasses;
+
+            // Ensure consistent grid cells by adding empty cells if needed
+            const maxColumns = isVowelRow ? 8 : 6;
+            const syllables = [...syllableRowArray, ...Array(maxColumns - syllableRowArray.length).fill('')];
+
+            syllables.forEach(syllable => {
+                const button = document.createElement('button');
+                if (syllable === '') {
+                    button.className = 'w-button-xs h-button-xs sm:w-button-sm sm:h-button-sm md:w-button-md md:h-button-md lg:w-button-lg lg:h-button-lg xl:w-button-lg xl:h-button-lg invisible';
+                    button.disabled = true;
+                } else {
+                    button.className = 'w-button-xs h-button-xs sm:w-button-sm sm:h-button-sm md:w-button-md md:h-button-md lg:w-button-lg lg:h-button-lg xl:w-button-lg xl:h-button-lg font-semibold text-black bg-amber-300 rounded-full shadow-lg hover:bg-amber-400 hover:scale-105 active:bg-amber-500 active:scale-95 transition-all duration-200 flex items-center justify-center sanskrit-text text-button-xs sm:text-button-sm md:text-button-md lg:text-button-lg xl:text-button-lg';
+                    button.textContent = syllable;
+                    button.setAttribute('data-syllable', syllable);
+                    button.setAttribute('aria-label', `Play sound for ${syllable}`);
+                    button.addEventListener('click', () => {
+                        if (isPlayingAll && !isPaused) return; // Prevent clicks during Play All unless paused
+                        button.classList.add('playing');
+                        setTimeout(() => button.classList.remove('playing'), 300);
+                        playSyllableMultipleTimes(syllable, button, parseInt(repetitionSelect.value), false);
+                    });
+                }
+                rowContainer.appendChild(button);
+            });
+            parentElement.appendChild(rowContainer);
+        }
+
+        // Message box for user feedback
+        function showMessageBox(message) {
+            const existingMessageBox = document.getElementById('message-box');
+            if (existingMessageBox) existingMessageBox.remove();
+
+            const messageBox = document.createElement('div');
+            messageBox.id = 'message-box';
+            messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 ${message.startsWith('Error') ? 'bg-red-600' : 'bg-blue-600'} text-white px-6 py-3 rounded-lg shadow-xl text-center text-lg z-50 transition-all duration-300 opacity-0 translate-y-4`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-0', 'translate-y-4');
+                messageBox.classList.add('opacity-100', 'translate-y-0');
+            }, 100);
+
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-100', 'translate-y-0');
+                messageBox.classList.add('opacity-0', 'translate-y-4');
+                messageBox.addEventListener('transitionend', () => messageBox.remove(), { once: true });
+            }, 3000);
+        }
+
+        // Initialize the soundboard
+        const vowelsSection = document.getElementById('vowels-section');
+        vowelRows.forEach(row => createButtonsForOneRow(row, vowelsSection, true));
+
+        const consonantsSection = document.getElementById('consonants-section');
+        consonantRows.forEach(row => createButtonsForOneRow(row, consonantsSection, false));
+
+        // Add event listeners for control buttons
+        playAllBtn.addEventListener('click', playAllSyllables);
+        pauseBtn.addEventListener('click', pausePlayback);
+        stopBtn.addEventListener('click', stopPlayback);
+    </script>
+</body>
+</html>
